@@ -190,6 +190,11 @@ exports.getFlights = (req, res) => {
                             }
                             if(flightKey != ""){
                                 myFlights[flightKey]['offerID'] = offerID;
+                                if(offerID.substring(offerID.length - 3, offerID.length - 2) == 2){
+                                    myFlights[flightKey]['ecoscore'] = 59.3;  
+                                }else{
+                                    myFlights[flightKey]['ecoscore'] = 71.4;
+                                }
                                 
                             }
                             
@@ -476,7 +481,7 @@ exports.getOrder = (req, res) =>{
                     password: "flymate",
                     database: "flymate"
                 });
-                let insertSQL = 'INSERT INTO bookings (full_name, email, flight_no, activity, have_baby, hate_baby, green, seat, order_id) VALUES ( ' +
+                let insertSQL = 'INSERT INTO bookings (full_name, email, flight_no, activity, have_baby, hate_baby, green, seat, order_id, ecoscore) VALUES ( ' +
                 '"' + getRequest.name + " " + getRequest.surname + '", ' +
                 '"' + getRequest.email + '", ' + 
                 '"' + getRequest.flightno + '", ' + 
@@ -486,6 +491,7 @@ exports.getOrder = (req, res) =>{
                 '"' + getRequest.green + '", ' + 
                 '"' + '11F' + '", ' + 
                 '"' + orderID + '" ' + 
+                '' + getRequest.ecoscore + ' ' + 
                 ');';    
                 con.connect(function(err) {
                     if (err) throw err;
@@ -622,6 +628,31 @@ exports.getUpdateSeat = (req, res) =>{
     
     
 }
+exports.getEcoScore = (req, res) =>{
+    let getResponse = res;
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "flymate",
+        password: "flymate",
+        database: "flymate"
+    });
+    let updateSQL = 'SELECT ecoscore FROM bookings WHERE email = "' + req.query.email + '"'; 
+    con.connect(function(err) {
+        if (err) throw err;
+        //console.log("Connected!");
+        con.query(updateSQL, function (err, result) {
+            if (err) throw err;
+            var count = 0;
+            for(let i=0;i<result.length;++i){
+                count += result[i]['ecoscore'];
+            }
+            res.end("" + count);
+            
+        });
+    });
+    
+    
+} 
 function chooseSeat(activity, hateBaby, seats){
     var seat = "1A";
     var max = 61;
