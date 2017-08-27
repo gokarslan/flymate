@@ -122,6 +122,7 @@ app.get('/flight/order', flymateController.getOrder);
 app.get('/flight/validate', flymateController.getValidateFlight);
 app.get('/flight/selectseat', flymateController.getUpdateSeat);
 app.get('/flight/eco', flymateController.getEco);
+app.get('/user/ecoscore', flymateController.getEcoScore);
 app.get('/', homeController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
