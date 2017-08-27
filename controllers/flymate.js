@@ -485,6 +485,7 @@ exports.getOrder = (req, res) =>{
                     password: "flymate",
                     database: "flymate"
                 });
+              
                 let insertSQL = 'INSERT INTO bookings (full_name, email, flight_no, activity, have_baby, hate_baby, green, seat, order_id, ecoscore, event) VALUES ( ' +
                 '"' + getRequest.name + " " + getRequest.surname + '", ' +
                 '"' + getRequest.email + '", ' + 
@@ -496,8 +497,8 @@ exports.getOrder = (req, res) =>{
                 '"' + '11F' + '", ' + 
                 '"' + orderID + '",' + 
                 '"' + getRequest.ecoscore + '",' + 
-                '"' + getRequest.event + '"' + 
-                ');';    
+                getRequest.event + 
+                ');';   
                 con.connect(function(err) {
                     if (err) throw err;
                     //console.log("Connected!");
