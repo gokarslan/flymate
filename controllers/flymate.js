@@ -216,6 +216,7 @@ exports.getFlights = (req, res) => {
 exports.getOrder = (req, res) =>{
     let getResponse  = res;  
     let getRequest = req.query;
+    let offer = req.query.offerid
     var bodyOrder = '<soapenv:Envelope ' + 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+ 'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1">'+
     '<soapenv:Header/>'+
     '<soapenv:Body>'+
@@ -279,13 +280,13 @@ exports.getOrder = (req, res) =>{
     '<OrderItems>'+
     '<ShoppingResponse>'+
     '	<Owner>AY</Owner>'+
-    '	<ResponseID>SULL-15806151678019274138</ResponseID>'+
+    '	<ResponseID>' + offer.substring(0, offer.length - 4)+ '</ResponseID>'+
     '	<Offers>'+
     '		<Offer>'+
-    '			<OfferID Owner="AY">SULL-15806151678019274138-1</OfferID>'+
+    '			<OfferID Owner="AY">' +offer.substring(0, offer.length - 2) +'</OfferID>'+
     '			<OfferItems>'+
     '				<OfferItem>'+
-    '					<OfferItemID Owner="AY">SULL-15806151678019274138-1-1</OfferItemID>'+
+    '					<OfferItemID Owner="AY">' + offer +'</OfferItemID>'+
     '					<Passengers>'+
     '						<PassengerReference>PAX1</PassengerReference>'+
     '					</Passengers>'+ 
@@ -374,7 +375,7 @@ exports.getOrder = (req, res) =>{
         res.on( "end", function( data ) {
             parseString(buffer, function (err, result) {
                 console.log(buffer); 
-                let data = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0];
+                let data     = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0];
                 if('Errors'  in data){
                     getResponse.end(buffer)
                     return;
