@@ -121,6 +121,7 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }))
 app.get('/flight/search', flymateController.getFlights);
 app.get('/flight/order', flymateController.getOrder);
 app.get('/flight/validate', flymateController.getValidateFlight);
+app.get('/flight/selectseat', flymateController.getUpdateSeat);
 app.get('/', homeController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);

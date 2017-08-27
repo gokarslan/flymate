@@ -514,6 +514,7 @@ exports.getValidateFlight = (req, res) =>{
 }
 
 exports.getUpdateSeat = (req, res) =>{
+    let getResponse = res;
     var con = mysql.createConnection({
         host: "localhost",
         user: "flymate",
@@ -524,8 +525,9 @@ exports.getUpdateSeat = (req, res) =>{
     con.connect(function(err) {
         if (err) throw err;
         //console.log("Connected!");
-        con.query(insertSQL, function (err, result) {
+        con.query(updateSQL, function (err, result) {
             if (err) throw err;
+            getResponse.end("Success!");
             
         });
     });
