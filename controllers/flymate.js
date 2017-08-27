@@ -147,7 +147,7 @@ exports.getFlights = (req, res) => {
                     
                     
                 }
-                
+                var myFlightsLen = 0;
                 for(let i = 0;i < airlineOffers.length; ++i){
                     let airlineOffer = airlineOffers[i]['AirlineOffer'];
                     for(let j=0; j < airlineOffer.length; ++j){
@@ -169,7 +169,10 @@ exports.getFlights = (req, res) => {
                                     flightKey = association['ApplicableFlight'][0]['FlightReferences'][0];
                                     if(!(flightKey in myFlights)){
                                         myFlights[flightKey] = {};
+                                        console.log("ASDASDASDAS")
+                                        
                                     }
+                                    myFlightsLen ++;
                                     myFlights[flightKey]['totalAmount'] = totalAmount;
                                     myFlights[flightKey]['taxes'] = taxes;
                                     myFlights[flightKey]['basePrice'] = basePrice;
@@ -193,10 +196,94 @@ exports.getFlights = (req, res) => {
                         }   
                     }
                 }
-                getResponse.writeHead(200, {"Content-Type": "application/json"});
-                myFlights['currency'] = currency;
-                var json = JSON.stringify(myFlights);
-                getResponse.end(json);
+                var counter = 0;
+                for(var key in myFlights){
+                    let offerid = myFlights[key]['offerID'];
+                    let myFlight = myFlights[key];
+                    var fullPriceBody= '<soapenv:Envelope '+
+                    'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+
+                    'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1"> '+
+                    '<soapenv:Header/>'+
+                    '<soapenv:Body>'+
+                    '<FlightPriceRQ Version="3.000" '+
+                    'xmlns="http://www.iata.org/IATA/EDIST/2016.1"> '+          
+                    '<Document/>'+
+                    '<Party>'+
+                    '<Sender>'+
+                    '<TravelAgencySender>'+
+                    '<AgencyID>HELAY08DC</AgencyID>'+
+                    '</TravelAgencySender>'+
+                    '</Sender>'+
+                    '</Party>'+
+                    '<Travelers>'+
+                    '<Traveler>'+
+                    '<AnonymousTraveler ObjectKey="PAX1">'+
+                    '<PTC>SJO</PTC>'+
+                    '</AnonymousTraveler>'+
+                    '</Traveler>'+
+                    '</Travelers>'+
+                    '<Query>'+
+                    '<Offers>'+
+                    '<Offer>'+
+                    '<OfferID Owner="AY">'+ offerid.substring(0, offerid.length - 2) +'</OfferID>'+ //offer
+                    '<OfferItemIDs>'+
+                    '<OfferItemID Owner="AY">'+ offerid +'</OfferItemID>'+ 
+                    '</OfferItemIDs>'+
+                    '</Offer>'+
+                    '</Offers>'+
+                    '</Query>'+
+                    '<Qualifier>'+
+                    '<PaymentCardQualifiers>'+
+                    '<Type>VI</Type>'+
+                    '<IIN_Number>401299</IIN_Number>'+
+                    '</PaymentCardQualifiers>'+
+                    '</Qualifier>'+
+                    '</FlightPriceRQ>'+
+                    '</soapenv:Body>'+
+                    '</soapenv:Envelope>';
+                    var postRequest = {
+                        host: "localhost",
+                        path: "/",
+                        port: 15000,
+                        method: "POST",
+                        headers: {
+                            'Cookie': "cookie",
+                            'Content-Type': 'text/xml',
+                            'Content-Length': Buffer.byteLength(fullPriceBody)
+                        }
+                    };
+
+                    var buffer = "";
+                    var req = http.request( postRequest, function( res )    {
+                        //console.log( res.statusCode );
+                        counter ++;
+                        var buffer = "";
+                        res.on( "data", function( data ) { 
+                            buffer = buffer + data; } );
+                        res.on( "end", function( data ) {
+                            parseString(buffer, function (err, result) {
+                                //console.log(buffer);
+                                myFlight['totalAmount'] = result['SOAP-ENV:Envelope']['Body'][0]['FlightPriceRS'][0]['PricedFlightOffers'][0]['PricedFlightOffer'][0]['OfferPrice'][0]['RequestedDate'][0]['PriceDetail'][0]['TotalAmount'][0]['DetailCurrencyPrice'][0]['Total'][0]['_'];
+                                if(counter == myFlightsLen){
+                                    getResponse.writeHead(200, {"Content-Type": "application/json"});
+                                        myFlights['currency'] = currency;
+                                        var json = JSON.stringify(myFlights);
+                                        getResponse.end(json);
+                                }
+                            });
+                        });
+                    });
+                    req.on('error', function(e) {
+                       console.log('problem with request: ' + e.message);
+                    });
+
+                    req.write(fullPriceBody);
+                    req.end();
+                    
+                    
+                }
+                
+                
 
                 
             });
@@ -628,3 +715,4 @@ function increaseSeat(seat){//suppose 10F is not feeded.
 function nextChar(c) {
     return String.fromCharCode(c.charCodeAt(0) + 1);
 }
+
