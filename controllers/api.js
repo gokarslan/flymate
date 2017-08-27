@@ -1,3 +1,4 @@
+const https = require('https');
 const bluebird = require('bluebird');
 const request = bluebird.promisifyAll(require('request'), { multiArgs: true });
 const cheerio = require('cheerio');
@@ -20,6 +21,7 @@ const foursquare = require('node-foursquare')({
     redirectUrl: process.env.FOURSQUARE_REDIRECT_URL
   }
 });
+const sita = process.env.SITA_KEY;
 
 foursquare.Venues = bluebird.promisifyAll(foursquare.Venues);
 foursquare.Users = bluebird.promisifyAll(foursquare.Users);
@@ -622,5 +624,15 @@ exports.postPinterest = (req, res, next) => {
 exports.getGoogleMaps = (req, res) => {
   res.render('api/google-maps', {
     title: 'Google Maps API'
+  });
+};
+
+/**
+ * GET /api/clockwork
+ * Clockwork SMS API example.
+ */
+exports.getSita = (req, res) => {
+  res.render('api/sita', {
+    title: 'sita API'
   });
 };

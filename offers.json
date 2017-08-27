@@ -1,0 +1,86 @@
+[
+	{
+		"offerId": "SULL-15806151678019274138-1",
+		"airline": "AY",
+		"flightNumber": "355",
+		"departureAirport": "HEL",
+		"arrivalAirport": "NCE",
+		"departureDate": "2017-10-15T09:10:00Z",
+		"flightduration": "03:00:00",
+		"amount": 200.00,
+		"currency": "EUR",
+		"fareClass" : "Economy",
+		"departureTerminal" : "1",
+		"arrivalTerminal" : "W",
+		"cleanScore" : 10710,
+		"aircraftCarrier" : Boeing 747,
+		"paxNumber" : {
+			"nbAdt": 1,
+			"nbChd": 0,
+			"nbInf": 1
+		}
+	},
+	{
+		"offerId": "SULL-15806151678019274138-2",
+		"airline": "AY",
+		"flightNumber": "1500",
+		"departureAirport": "HEL",
+		"arrivalAirport": "NCE",
+		"departureDate": "2017-10-15T15:20:00Z",
+		"flightduration": "02:30:00",
+		"amount": 300.00,
+		"currency": "EUR",
+		"fareClass": "Business",
+		"departureTerminal" : "1",
+		"arrivalTerminal" : "W",
+		"aircraftCarrier" : Boeing 747,
+		"cleanScore" : 10710,
+		"paxNumber" : {
+			"nbAdt": 2,
+			"nbChd": 1,
+			"nbInf": 1
+		}
+	},
+	{
+		"offerId": "SULL-15806151678019274138-3",
+		"airline": "AY",
+		"flightNumber": "1550",
+		"departureAirport": "SFO",
+		"arrivalAirport": "LHR",
+		"departureDate": "2017-08-27T16:35:00Z",
+		"flightduration": "10:25:00",
+		"amount": 2988.00,
+		"currency": "EUR",
+		"fareClass": "Business",
+		"departureTerminal" : "1",
+		"arrivalTerminal" : "W",
+		"aircraftCarrier" : Boeing 747,
+		"cleanScore" : 10710,
+		"paxNumber" : {
+			"nbAdt": 2,
+			"nbChd": 3,
+			"nbInf": 1
+		}
+	},
+	{
+		"offerId": "SULL-15806151678019274138-3",
+		"airline": "AY",
+		"flightNumber": "1550",
+		"departureAirport": "SFO",
+		"arrivalAirport": "LHR",
+	    "departureDate": "2017-08-27T19:30:00Z",
+		"flightduration": "10:25:00",
+		"amount": 2955.00,
+		"currency": "EUR",
+		"fareClass": "Economy",
+		"departureTerminal" : "1",
+		"arrivalTerminal" : "W",
+		"aircraftCarrier" : Airbus A380,
+		"cleanScore" : 8890,
+		"paxNumber" : {
+			"nbAdt": 2,
+			"nbChd": 4,
+			"nbInf": 1
+		}
+	},
+]
