@@ -33,6 +33,7 @@ dotenv.load({ path: '.env.example' });
 const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
+const flymateController = require('./controllers/flymate');
 
 /**
  * API keys and Passport configuration.
@@ -117,6 +118,7 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }))
 /**
  * Primary app routes.
  */
+app.get('/flight/search', flymateController.getFlights);
 app.get('/', homeController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
