@@ -191,7 +191,7 @@ exports.getFlights = (req, res) => {
                             }
                             if(flightKey != ""){
                                 myFlights[flightKey]['offerID'] = offerID;
-                                if(offerID.substring(offerID.length - 3, offerID.length - 2) == 2){
+                                if(offerID.substring(offerID.length - 3, offerID.length - 2) == 1){
                                     myFlights[flightKey]['ecoscore'] = 59.3;  
                                 }else{
                                     myFlights[flightKey]['ecoscore'] = 71.4;
