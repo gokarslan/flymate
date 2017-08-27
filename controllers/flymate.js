@@ -492,8 +492,8 @@ exports.getOrder = (req, res) =>{
                 '"' + getRequest.hate_baby + '", ' + 
                 '"' + getRequest.green + '", ' + 
                 '"' + '11F' + '", ' + 
-                '"' + orderID + '" ' + 
-                '' + getRequest.ecoscore + ' ' + 
+                '"' + orderID + '",' + 
+                '"' + getRequest.ecoscore + '"' + 
                 ');';    
                 con.connect(function(err) {
                     if (err) throw err;
