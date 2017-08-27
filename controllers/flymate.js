@@ -1,5 +1,6 @@
 const http = require('http');
 var parseString = require('xml2js').parseString;
+var mysql = require('mysql');
 /**
 **/
 
@@ -213,7 +214,8 @@ exports.getFlights = (req, res) => {
 };
 
 exports.getOrder = (req, res) =>{
-    let getResponse  = res;
+    let getResponse  = res;  
+    let getRequest = req.query;
     var bodyOrder = '<soapenv:Envelope ' + 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+ 'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1">'+
     '<soapenv:Header/>'+
     '<soapenv:Body>'+
@@ -286,7 +288,7 @@ exports.getOrder = (req, res) =>{
     '					<OfferItemID Owner="AY">SULL-15806151678019274138-1-1</OfferItemID>'+
     '					<Passengers>'+
     '						<PassengerReference>PAX1</PassengerReference>'+
-    '					</Passengers>'+
+    '					</Passengers>'+ 
     '				</OfferItem>'+
     '			</OfferItems>'+
     '		</Offer>'+
@@ -371,14 +373,68 @@ exports.getOrder = (req, res) =>{
             buffer = buffer + data; } );
         res.on( "end", function( data ) {
             parseString(buffer, function (err, result) {
+                console.log(buffer); 
                 let data = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0];
-                if('Errors' in data){
+                if('Errors'  in data){
                     getResponse.end(buffer)
                     return;
                 }
                 
                 let orderID = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0]['Response'][0]['Order'][0]['OrderID'][0]['_'];
-                getResponse.end(orderID);
+                
+                var con = mysql.createConnection({
+                    host: "localhost",
+                    user: "flymate",
+                    password: "flymate",
+                    database: "flymate"
+                });
+                let insertSQL = 'INSERT INTO bookings (full_name, email, flight_no, activity, have_baby, hate_baby, green, seat, order_id) VALUES ( ' +
+                '"' + getRequest.name + " " + getRequest.surname + '", ' +
+                '"' + getRequest.email + '", ' + 
+                '"' + getRequest.flightno + '", ' + 
+                '"' + getRequest.activity + '", ' + 
+                '"' + getRequest.have_baby + '", ' + 
+                '"' + getRequest.hate_baby + '", ' + 
+                '"' + getRequest.green + '", ' + 
+                '"' + '11F' + '", ' + 
+                '"' + orderID + '" ' + 
+                ');';    
+                con.connect(function(err) {
+                    if (err) throw err;
+                    //console.log("Connected!");
+                    con.query(insertSQL, function (err, result) {
+                    if (err) throw err;
+                        let insertId = result['insertId'];
+                        let getQuery = "SELECT * FROM bookings WHERE flight_no = " + '"' + getRequest.flightno + '";';
+                        let seats = {};
+                        con.query(getQuery,function (err, result) {
+                            if (err) throw err;
+                            for(let i=0;i<result.length;++i){
+                                let seatNumber = result[i]['seat'];
+                                if(seatNumber == "11F"){
+                                    continue;
+                                }
+                                var seat = seats[seatNumber] = {};
+                                seat['activity'] =result[i]['activity'];
+                                seat['haveBaby'] =result[i]['have_baby'];
+                                seat['hateBaby'] =result[i]['hate_baby'];
+                                seat['green'] =result[i]['green'];
+                            }
+                            
+                            //console.log(seats);
+                            choosenSeat = chooseSeat(getRequest.activity, getRequest.hate_baby, seats)
+                            //console.log(choosenSeat);
+                            getResponse.writeHead(200, {"Content-Type": "application/json"});
+                            jsonObj = {};
+                            jsonObj['seats'] = seats;
+                            jsonObj['choosenSeat'] = choosenSeat;
+                            jsonObj['id'] = insertId;
+                            var json = JSON.stringify(jsonObj);
+                            getResponse.end(json);
+                        });
+                    });
+                });
+    
             });
         });
     });
@@ -391,6 +447,8 @@ exports.getOrder = (req, res) =>{
     
 }
 exports.getValidateFlight = (req, res) =>{
+
+    
     let getResponse = res;
     var bodyValidate = '<soapenv:Envelope   '+ 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+ 'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1">'+
  '  <soapenv:Header/>'+
@@ -434,7 +492,7 @@ exports.getValidateFlight = (req, res) =>{
         res.on( "end", function( data ) {
             parseString(buffer, function (err, result) {
                 let data = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0];
-                console.log(data);
+                //console.log(data);
                 if('Errors' in data){
                     getResponse.end("notfound")
                     return;
@@ -453,4 +511,117 @@ exports.getValidateFlight = (req, res) =>{
     req.end();
     
     
+}
+
+exports.getUpdateSeat = (req, res) =>{
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "flymate",
+        password: "flymate",
+        database: "flymate"
+    });
+    let updateSQL = 'UPDATE bookings SET seat = "'+ req.query.seat + '" WHERE id = "' + req.query.id + '"'; 
+    con.connect(function(err) {
+        if (err) throw err;
+        //console.log("Connected!");
+        con.query(insertSQL, function (err, result) {
+            if (err) throw err;
+            
+        });
+    });
+    
+    
+}
+function chooseSeat(activity, hateBaby, seats){
+    var seat = "1A";
+    var max = 61;
+    while(max-- >= 0){
+        if(seat in seats){
+            seat = increaseSeat(seat);
+            continue;
+        }
+        if(hateBaby == "yes" && checkNeighborsBaby(seat, seats) == "yes"){
+            console.log("here");
+            seat = increaseSeat(seat);
+            continue; 
+        }
+        if(activity == "sleep" && checkNeighborsActivity(seat, seats, "sleep") == "yes"){
+            seat = increaseSeat(seat);
+            continue; 
+        }
+        if(activity == "talk" && checkNeighborsActivity(seat, seats, "talk") == "yes"){
+            seat = increaseSeat(seat);
+            continue; 
+        }
+        if(activity == "work" && checkNeighborsActivity(seat, seats, "work") == "yes"){
+            seat = increaseSeat(seat);
+            continue; 
+        }
+        return seat;
+    }
+    return "FF";
+      
+}
+function checkNeighborsBaby(seat, seats){
+    let previousSeat = decreaseSeat(seat);
+    let nextSeat = increaseSeat(seat);
+    if(previousSeat in seats){
+        if(seats[previousSeat]['haveBaby'] == "yes"){
+            return "yes";
+        }
+    }
+    if(nextSeat in seats){
+        if(seats[nextSeat]['haveBaby'] == "yes"){
+            return "yes";
+        }
+    }
+    return "no";
+    
+}
+function checkNeighborsActivity(seat, seats, activity){
+    let previousSeat = decreaseSeat(seat);
+    let nextSeat = increaseSeat(seat);
+    if(previousSeat in seats){
+        if(seats[previousSeat]['activity'] != activity){
+            return "yes";
+        }
+    }
+    if(nextSeat in seats){
+        if(seats[nextSeat]['activity'] != activity){
+            return "yes";
+        }
+    }
+    return "no";
+    
+}
+
+function decreaseSeat(seat){//suppose 10F is not feeded.
+    if(seat.length == 3){
+        if(seat.substring(2, 3) == "A"){
+            return "9F";
+        }
+        return seat.substring(0, 2) + previousChar(seat.substring(2,3))
+    } 
+    if(seat.substring(1,2) != "A"){
+        return seat.substring(0, 1) + previousChar(seat.substring(1,2));
+    }
+    return "" + (parseInt(seat.substring(0, 1)) - 1) + "F";
+}
+function previousChar(c) {
+    return String.fromCharCode(c.charCodeAt(0) - 1);
+}
+function nextChar(c) {
+    return String.fromCharCode(c.charCodeAt(0) + 1);
+}
+function increaseSeat(seat){//suppose 10F is not feeded.
+    if(seat.length == 3){
+        return seat.substring(0, 2) + nextChar(seat.substring(2,3))
+    } 
+    if(seat.substring(1,2) != "F"){
+        return seat.substring(0, 1) + nextChar(seat.substring(1,2));
+    }
+    return "" + (parseInt(seat.substring(0, 1)) + 1) + "A";
+}
+function nextChar(c) {
+    return String.fromCharCode(c.charCodeAt(0) + 1);
 }
