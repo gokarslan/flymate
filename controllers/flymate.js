@@ -3,6 +3,7 @@ var parseString = require('xml2js').parseString;
 /**
 **/
 
+
 /**
  * GET /flight/search
  * Contact form page.
@@ -387,5 +388,69 @@ exports.getOrder = (req, res) =>{
     
     req.write(bodyOrder);
     req.end();
+    
+}
+exports.getValidateFlight = (req, res) =>{
+    let getResponse = res;
+    var bodyValidate = '<soapenv:Envelope   '+ 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+ 'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1">'+
+ '  <soapenv:Header/>'+
+ '  <soapenv:Body>'+
+ ' <OrderRetrieveRQ Version="3.000" xmlns="http://www.iata.org/IATA/EDIST/2016.1">'+
+	'<Document/>'+
+	'<Party>'+
+	'	<Sender>'+
+	'		<TravelAgencySender>'+
+	'			<IATA_Number>12345678</IATA_Number>'+
+	'			<AgencyID>NCE6X0100</AgencyID>'+
+	'		</TravelAgencySender>'+
+	'	</Sender>'+
+	'</Party>'+
+	'<Query>'+
+	'	<Filters>'+
+	'		<OrderID Owner="AY">' + req.query.orderid + '</OrderID>'+
+	'	</Filters>'+
+	'</Query>'+
+'</OrderRetrieveRQ>'+
+'   </soapenv:Body>'+
+'</soapenv:Envelope>';
+    var postRequest = {
+        host: "localhost",
+        path: "/",
+        port: 15000,
+        method: "POST",
+        headers: {
+            'Cookie': "cookie",
+            'Content-Type': 'text/xml',
+            'Content-Length': Buffer.byteLength(bodyValidate) 
+        }
+    };
+    
+    var buffer = "";
+    var req = http.request( postRequest, function( res )    {
+        //console.log( res.statusCode );
+        var buffer = "";
+        res.on( "data", function( data ) { 
+            buffer = buffer + data; } );
+        res.on( "end", function( data ) {
+            parseString(buffer, function (err, result) {
+                let data = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0];
+                console.log(data);
+                if('Errors' in data){
+                    getResponse.end("notfound")
+                    return;
+                }
+                
+                /*let orderID = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0]['Response'][0]['Order'][0]['OrderID'][0]['_'];*/
+                getResponse.end(buffer);
+            });
+        });
+    });
+    req.on('error', function(e) {
+           console.log('problem with request: ' + e.message);
+           });
+    
+    req.write(bodyValidate);
+    req.end();
+    
     
 }
