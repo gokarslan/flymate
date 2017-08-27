@@ -12,7 +12,7 @@ var mysql = require('mysql');
 exports.getFlights = (req, res) => {
     let getResponse = res;
     console.log(req.query);
-    
+
     var bodyAirShopping = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1"> ' +
     '<soapenv:Header/>' +
     '<soapenv:Body>' +
@@ -39,7 +39,7 @@ exports.getFlights = (req, res) => {
     '</ns:Travelers>' +
     '<ns:CoreQuery>' +
     '<ns:OriginDestinations>' +
-    '<ns:OriginDestination>' + 
+    '<ns:OriginDestination>' +
     '<ns:Departure>' +
     '<ns:AirportCode>' + req.query.departure + '</ns:AirportCode>' +
     '<ns:Date>' + req.query.date + '</ns:Date>' + //2017-10-15
@@ -56,7 +56,7 @@ exports.getFlights = (req, res) => {
     '</ns:AirShoppingRQ>' +
     '</soapenv:Body>' +
     '</soapenv:Envelope>';
-    
+
     var postRequest = {
     host: "localhost",
     path: "/",
@@ -68,12 +68,12 @@ exports.getFlights = (req, res) => {
         'Content-Length': Buffer.byteLength(bodyAirShopping)
     }
     };
-    
+
     var buffer = "";
     var req = http.request( postRequest, function( res )    {
         //console.log( res.statusCode );
         var buffer = "";
-        res.on( "data", function( data ) { 
+        res.on( "data", function( data ) {
             buffer = buffer + data; } );
         res.on( "end", function( data ) {
             parseString(buffer, function (err, result) {
@@ -85,7 +85,7 @@ exports.getFlights = (req, res) => {
                     getResponse.end("No offer matching input criterias");
                     return;
                 }
-                
+
                 let airlineOffers = data['OffersGroup'][0]['AirlineOffers'];
                 let currency = data['Metadata'][0]['Other'][0]['OtherMetadata'][0]['CurrencyMetadatas'][0]['CurrencyMetadata'][0]['Name'][0];
                 let dataLists = data['DataLists'];
@@ -105,18 +105,18 @@ exports.getFlights = (req, res) => {
                         segments[segmentKey]['departureDate'] = departure['Date'][0];
                         segments[segmentKey]['departureTime'] = departure['Time'][0];
                         segments[segmentKey]['departureTerminal'] = departure['Terminal'][0]['Name'][0];
-                        
+
                         let arrival = flightSegment['Arrival'][0];
                         segments[segmentKey]['arrivalAirport'] = arrival['AirportCode'][0];
                         segments[segmentKey]['arrivalDate'] = arrival['Date'][0];
                         segments[segmentKey]['arrivalTime'] = arrival['Time'][0];
                         segments[segmentKey]['arrivalTerminal'] = arrival['Terminal'][0]['Name'][0];
-                        
+
                         segments[segmentKey]['marketingCarrier'] = flightSegment['MarketingCarrier'][0]['AirlineID'][0];
                         segments[segmentKey]['flightNumber'] = flightSegment['MarketingCarrier'][0]['FlightNumber'][0]
                         segments[segmentKey]['operatingCarrier'] = flightSegment['OperatingCarrier'][0]['AirlineID'][0];
-                        
-                        
+
+
                     }
                     let flightList = dataList['FlightList'][0]['Flight'];
                     for(let j=0;j<flightList.length;++j){
@@ -124,7 +124,7 @@ exports.getFlights = (req, res) => {
                         let flightKey= flight['$']['FlightKey'];
                         let time = flight['Journey'][0]['Time'][0];
                         let segmentReferences = flight['SegmentReferences'][0];
-                        
+
                         if(!(flightKey in myFlights)){
                             myFlights[flightKey] = {};
                         }
@@ -133,21 +133,21 @@ exports.getFlights = (req, res) => {
                         console.log(flightKey);
                         //console.log(time);
                         //console.log(segmentReferences);
-                        
+
                     }
                     /*let anonymousTravelerList = dataList['AnonymousTravelerList'][0]['AnonymousTraveler'];
                     console.log(anonymousTravelerList);*/
-                    
+
                     /*let originDestinationList = dataList['OriginDestinationList'];
                     console.log(originDestinationList[0]['OriginDestination']);*/
                     /*let priceClassList = dataList['PriceClassList'][0]['PriceClass'];
                     console.log(priceClassList);*/
                     /*let serviceList = dataList['ServiceList'][0]['Service'];
                     console.log(serviceList);*/
-                    
-                    
+
+
                 }
-                
+
                 for(let i = 0;i < airlineOffers.length; ++i){
                     let airlineOffer = airlineOffers[i]['AirlineOffer'];
                     for(let j=0; j < airlineOffer.length; ++j){
@@ -161,7 +161,7 @@ exports.getFlights = (req, res) => {
                             let totalAmount = priceDetail[0]['TotalAmount'][0]['SimpleCurrencyPrice'][0];
                             let taxes = priceDetail[0]['Taxes'][0]['Total'][0];
                             let basePrice = priceDetail[0]['BaseAmount'][0];
-                            
+
                             let associations = offerPrice['RequestedDate'][0]['Associations'];
                             for(let l=0; l<associations.length;++l){
                                 let association = associations[l];
@@ -175,7 +175,7 @@ exports.getFlights = (req, res) => {
                                     myFlights[flightKey]['basePrice'] = basePrice;
                                     myFlights[flightKey]['origin'] = association['ApplicableFlight'][0]['OriginDestinationReferences'][0].substring(0, 3);
                                     myFlights[flightKey]['destination'] = association['ApplicableFlight'][0]['OriginDestinationReferences'][0].substring(3, 6);
-                                    
+
                                 }else{
                                     if(flightKey != ""){
                                         myFlights[flightKey]['priceClassReference'] = association['PriceClass'][0]['PriceClassReference'][0];
@@ -183,14 +183,14 @@ exports.getFlights = (req, res) => {
                                         console.log("This shouldn't be happened, <price class>");
                                     }
                                 }
-                                
+
                             }
                             if(flightKey != ""){
                                 myFlights[flightKey]['offerID'] = offerID;
-                                
+
                             }
-                            
-                        }   
+
+                        }
                     }
                 }
                 getResponse.writeHead(200, {"Content-Type": "application/json"});
@@ -198,7 +198,7 @@ exports.getFlights = (req, res) => {
                 var json = JSON.stringify(myFlights);
                 getResponse.end(json);
 
-                
+
             });
     } );
 
@@ -207,14 +207,14 @@ exports.getFlights = (req, res) => {
     req.on('error', function(e) {
            console.log('problem with request: ' + e.message);
            });
-    
+
     req.write(bodyAirShopping);
     req.end();
 
 };
 
 exports.getOrder = (req, res) =>{
-    let getResponse  = res;  
+    let getResponse  = res;
     let getRequest = req.query;
     var bodyOrder = '<soapenv:Envelope ' + 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+ 'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1">'+
     '<soapenv:Header/>'+
@@ -243,7 +243,7 @@ exports.getOrder = (req, res) =>{
     '<Surname>'+ req.query.surname +'</Surname>'+
     '<Given>'+ req.query.name +'</Given>'+
     '<Title>'+ req.query.title +'</Title>'+
-    '</Name>  '+             
+    '</Name>  '+
     '<Contacts>'+
     '<Contact>'+
     '<EmailContact>'+
@@ -262,7 +262,7 @@ exports.getOrder = (req, res) =>{
     '<Number>333030682632711</Number>'+
     '</Account>'+
     '</TravelerFQTV_Information>'+
-    '</FQTVs>         '+           
+    '</FQTVs>         '+
     '<Gender>'+ req.query.gender + '</Gender>  '+                       //GENDER
     '<PassengerIDInfo AllowDocumentInd="true">'+
     '	<PassengerDocument>'+                       // DOCUMENT
@@ -288,7 +288,7 @@ exports.getOrder = (req, res) =>{
     '					<OfferItemID Owner="AY">SULL-15806151678019274138-1-1</OfferItemID>'+
     '					<Passengers>'+
     '						<PassengerReference>PAX1</PassengerReference>'+
-    '					</Passengers>'+ 
+    '					</Passengers>'+
     '				</OfferItem>'+
     '			</OfferItems>'+
     '		</Offer>'+
@@ -361,27 +361,27 @@ exports.getOrder = (req, res) =>{
         headers: {
             'Cookie': "cookie",
             'Content-Type': 'text/xml',
-            'Content-Length': Buffer.byteLength(bodyOrder) 
+            'Content-Length': Buffer.byteLength(bodyOrder)
         }
     };
-    
+
     var buffer = "";
     var req = http.request( postRequest, function( res )    {
         //console.log( res.statusCode );
         var buffer = "";
-        res.on( "data", function( data ) { 
+        res.on( "data", function( data ) {
             buffer = buffer + data; } );
         res.on( "end", function( data ) {
             parseString(buffer, function (err, result) {
-                console.log(buffer); 
+                console.log(buffer);
                 let data = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0];
                 if('Errors'  in data){
                     getResponse.end(buffer)
                     return;
                 }
-                
+
                 let orderID = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0]['Response'][0]['Order'][0]['OrderID'][0]['_'];
-                
+
                 var con = mysql.createConnection({
                     host: "localhost",
                     user: "flymate",
@@ -390,15 +390,15 @@ exports.getOrder = (req, res) =>{
                 });
                 let insertSQL = 'INSERT INTO bookings (full_name, email, flight_no, activity, have_baby, hate_baby, green, seat, order_id) VALUES ( ' +
                 '"' + getRequest.name + " " + getRequest.surname + '", ' +
-                '"' + getRequest.email + '", ' + 
-                '"' + getRequest.flightno + '", ' + 
-                '"' + getRequest.activity + '", ' + 
-                '"' + getRequest.have_baby + '", ' + 
-                '"' + getRequest.hate_baby + '", ' + 
-                '"' + getRequest.green + '", ' + 
-                '"' + '11F' + '", ' + 
-                '"' + orderID + '" ' + 
-                ');';    
+                '"' + getRequest.email + '", ' +
+                '"' + getRequest.flightno + '", ' +
+                '"' + getRequest.activity + '", ' +
+                '"' + getRequest.have_baby + '", ' +
+                '"' + getRequest.hate_baby + '", ' +
+                '"' + getRequest.green + '", ' +
+                '"' + '11F' + '", ' +
+                '"' + orderID + '" ' +
+                ');';
                 con.connect(function(err) {
                     if (err) throw err;
                     //console.log("Connected!");
@@ -420,7 +420,7 @@ exports.getOrder = (req, res) =>{
                                 seat['hateBaby'] =result[i]['hate_baby'];
                                 seat['green'] =result[i]['green'];
                             }
-                            
+
                             //console.log(seats);
                             choosenSeat = chooseSeat(getRequest.activity, getRequest.hate_baby, seats)
                             //console.log(choosenSeat);
@@ -434,21 +434,21 @@ exports.getOrder = (req, res) =>{
                         });
                     });
                 });
-    
+
             });
         });
     });
     req.on('error', function(e) {
            console.log('problem with request: ' + e.message);
            });
-    
+
     req.write(bodyOrder);
     req.end();
-    
+
 }
 exports.getValidateFlight = (req, res) =>{
 
-    
+
     let getResponse = res;
     var bodyValidate = '<soapenv:Envelope   '+ 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+ 'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1">'+
  '  <soapenv:Header/>'+
@@ -479,15 +479,15 @@ exports.getValidateFlight = (req, res) =>{
         headers: {
             'Cookie': "cookie",
             'Content-Type': 'text/xml',
-            'Content-Length': Buffer.byteLength(bodyValidate) 
+            'Content-Length': Buffer.byteLength(bodyValidate)
         }
     };
-    
+
     var buffer = "";
     var req = http.request( postRequest, function( res )    {
         //console.log( res.statusCode );
         var buffer = "";
-        res.on( "data", function( data ) { 
+        res.on( "data", function( data ) {
             buffer = buffer + data; } );
         res.on( "end", function( data ) {
             parseString(buffer, function (err, result) {
@@ -497,7 +497,7 @@ exports.getValidateFlight = (req, res) =>{
                     getResponse.end("notfound")
                     return;
                 }
-                
+
                 /*let orderID = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0]['Response'][0]['Order'][0]['OrderID'][0]['_'];*/
                 getResponse.end(buffer);
             });
@@ -506,12 +506,22 @@ exports.getValidateFlight = (req, res) =>{
     req.on('error', function(e) {
            console.log('problem with request: ' + e.message);
            });
-    
+
     req.write(bodyValidate);
     req.end();
-    
-    
+
+
 }
+
+exports.getEco = (req, res) =>{
+    res.render('flymate/eco', {
+    });
+    $("button").toggle(function(){
+        $("button").css("color", "red");
+    });
+};
+
+
 
 exports.getUpdateSeat = (req, res) =>{
     let getResponse = res;
@@ -521,18 +531,18 @@ exports.getUpdateSeat = (req, res) =>{
         password: "flymate",
         database: "flymate"
     });
-    let updateSQL = 'UPDATE bookings SET seat = "'+ req.query.seat + '" WHERE id = "' + req.query.id + '"'; 
+    let updateSQL = 'UPDATE bookings SET seat = "'+ req.query.seat + '" WHERE id = "' + req.query.id + '"';
     con.connect(function(err) {
         if (err) throw err;
         //console.log("Connected!");
         con.query(updateSQL, function (err, result) {
             if (err) throw err;
             getResponse.end("Success!");
-            
+
         });
     });
-    
-    
+
+
 }
 function chooseSeat(activity, hateBaby, seats){
     var seat = "1A";
@@ -545,24 +555,24 @@ function chooseSeat(activity, hateBaby, seats){
         if(hateBaby == "yes" && checkNeighborsBaby(seat, seats) == "yes"){
             console.log("here");
             seat = increaseSeat(seat);
-            continue; 
+            continue;
         }
         if(activity == "sleep" && checkNeighborsActivity(seat, seats, "sleep") == "yes"){
             seat = increaseSeat(seat);
-            continue; 
+            continue;
         }
         if(activity == "talk" && checkNeighborsActivity(seat, seats, "talk") == "yes"){
             seat = increaseSeat(seat);
-            continue; 
+            continue;
         }
         if(activity == "work" && checkNeighborsActivity(seat, seats, "work") == "yes"){
             seat = increaseSeat(seat);
-            continue; 
+            continue;
         }
         return seat;
     }
     return "FF";
-      
+
 }
 function checkNeighborsBaby(seat, seats){
     let previousSeat = decreaseSeat(seat);
@@ -578,7 +588,7 @@ function checkNeighborsBaby(seat, seats){
         }
     }
     return "no";
-    
+
 }
 function checkNeighborsActivity(seat, seats, activity){
     let previousSeat = decreaseSeat(seat);
@@ -594,7 +604,7 @@ function checkNeighborsActivity(seat, seats, activity){
         }
     }
     return "no";
-    
+
 }
 
 function decreaseSeat(seat){//suppose 10F is not feeded.
@@ -603,7 +613,7 @@ function decreaseSeat(seat){//suppose 10F is not feeded.
             return "9F";
         }
         return seat.substring(0, 2) + previousChar(seat.substring(2,3))
-    } 
+    }
     if(seat.substring(1,2) != "A"){
         return seat.substring(0, 1) + previousChar(seat.substring(1,2));
     }
@@ -618,7 +628,7 @@ function nextChar(c) {
 function increaseSeat(seat){//suppose 10F is not feeded.
     if(seat.length == 3){
         return seat.substring(0, 2) + nextChar(seat.substring(2,3))
-    } 
+    }
     if(seat.substring(1,2) != "F"){
         return seat.substring(0, 1) + nextChar(seat.substring(1,2));
     }

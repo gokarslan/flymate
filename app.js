@@ -26,7 +26,6 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
 dotenv.load({ path: '.env.example' });
-
 /**
  * Controllers (route handlers).
  */
@@ -122,6 +121,7 @@ app.get('/flight/search', flymateController.getFlights);
 app.get('/flight/order', flymateController.getOrder);
 app.get('/flight/validate', flymateController.getValidateFlight);
 app.get('/flight/selectseat', flymateController.getUpdateSeat);
+app.get('/flight/eco', flymateController.getEco);
 app.get('/', homeController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
