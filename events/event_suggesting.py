@@ -8,7 +8,7 @@ def suggestEvents(flightJson, testDate=None):
     
     flight = flightJson
     arrival_airport = flight["segmentReferences"]["arrivalAirport"]
-    print ("arrival airport", arrival_airport)
+    #print ("arrival airport", arrival_airport)
     
     if testDate is None:
         date = flight["segmentReferences"]['arrivalDate']
@@ -18,12 +18,12 @@ def suggestEvents(flightJson, testDate=None):
         time = flight["segmentReferences"]['arrivalTime']
         arrival_time = testDate[:-1] + 'T' + time + ":00"
     
-    print (arrival_time)
+    #print (arrival_time)
     
     
     end_date = arrival_time[:8] + str(int(arrival_time[8:10]) + 3) + arrival_time[10:]
 
-    print (end_date)
+    #print (end_date)
     
     
     airports = pd.read_csv('https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat', header=None)
@@ -46,7 +46,7 @@ def suggestEvents(flightJson, testDate=None):
             response.append(events['events']['name']['text'])
         else:
             
-            print ('ffdsfdsf')
+            #print ('ffdsfdsf')
             for event_name in events['events'][:3]:
 
                 response[event_name['name']['text']] = event_name['url']
