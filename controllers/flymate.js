@@ -326,11 +326,11 @@ exports.getOrder = (req, res) =>{
     '	<FlightSegmentList>'+
     '	    <FlightSegment SegmentKey="SEG1">'+
     '		<Departure>'+
-    '			<AirportCode>HEL</AirportCode>'+
+    '			<AirportCode>' + req.query.departure +'</AirportCode>'+
     '			<Date>'+ req.query.date +'</Date>'+
     '		</Departure>'+
     '		<Arrival>'+
-    '			<AirportCode>NCE</AirportCode>'+
+    '			<AirportCode>' + req.query.arrival +'</AirportCode>'+
     '		</Arrival>'+
     '			<MarketingCarrier>'+
     '			   <AirlineID>AY</AirlineID>'+
