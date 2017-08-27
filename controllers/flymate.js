@@ -1,7 +1,10 @@
 const http = require('http');
 var parseString = require('xml2js').parseString;
 /**
- * GET /contact
+**/
+
+/**
+ * GET /flight/search
  * Contact form page.
  */
 exports.getFlights = (req, res) => {
@@ -27,9 +30,9 @@ exports.getFlights = (req, res) => {
     '<ns:AnonymousTraveler>' +
     '<ns:PTC Quantity="1">ADT</ns:PTC>' +
     '</ns:AnonymousTraveler>' +
-    '<ns:AnonymousTraveler>' +
+    /*'<ns:AnonymousTraveler>' +
     '<ns:PTC Quantity="1">INF</ns:PTC>' +
-    '</ns:AnonymousTraveler>' +
+    '</ns:AnonymousTraveler>' +*/
     '</ns:Traveler>' +
     '</ns:Travelers>' +
     '<ns:CoreQuery>' +
@@ -207,3 +210,182 @@ exports.getFlights = (req, res) => {
     req.end();
 
 };
+
+exports.getOrder = (req, res) =>{
+    let getResponse  = res;
+    var bodyOrder = '<soapenv:Envelope ' + 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '+ 'xmlns:ns="http://www.iata.org/IATA/EDIST/2016.1">'+
+    '<soapenv:Header/>'+
+    '<soapenv:Body>'+
+    '<OrderCreateRQ Version="3.000" xmlns="http://www.iata.org/IATA/EDIST/2016.1">'+
+    '<Document id="Order">'+
+    '	<Name>Test toto Airline</Name>'+
+    '	<ReferenceVersion>16.1</ReferenceVersion>'+
+    '</Document>'+
+    '<Party>'+
+    '	<Sender>'+
+    '	<TravelAgencySender>'+
+    '		<IATA_Number>12345678</IATA_Number>'+
+    '		<AgencyID>HELAY08DC</AgencyID>'+
+    '	</TravelAgencySender>'+
+    '</Sender>'+
+    '</Party>'+
+    '<Query>'+
+    '<Passengers>'+
+    '<Passenger ObjectKey="PAX1">'+
+    '<PTC>ADT</PTC>'+
+    '<Age>'+
+    '	<BirthDate>' + req.query.birthdate +'</BirthDate>  '+          //AGE
+    '</Age>'+
+    '<Name>'+                                             //NAME
+    '<Surname>'+ req.query.surname +'</Surname>'+
+    '<Given>'+ req.query.name +'</Given>'+
+    '<Title>'+ req.query.title +'</Title>'+
+    '</Name>  '+             
+    '<Contacts>'+
+    '<Contact>'+
+    '<EmailContact>'+
+    '	<Address>'+ req.query.email +'</Address> '+     //EMAIL
+    '</EmailContact>'+
+    '<PhoneContact>'+
+    '	<Application>Home</Application>'+
+    '	<Number CountryCode="1">'+ req.query.phone +'</Number> '+//PHONE
+    '</PhoneContact>'+
+    '</Contact>'+
+    '</Contacts>'+
+    '<FQTVs>'+
+    '<TravelerFQTV_Information>'+
+    '<AirlineID>AY</AirlineID>'+
+    '<Account>'+
+    '<Number>333030682632711</Number>'+
+    '</Account>'+
+    '</TravelerFQTV_Information>'+
+    '</FQTVs>         '+           
+    '<Gender>'+ req.query.gender + '</Gender>  '+                       //GENDER
+    '<PassengerIDInfo AllowDocumentInd="true">'+
+    '	<PassengerDocument>'+                       // DOCUMENT
+    '	<Type>PT</Type>'+
+    '	<ID>'+ req.query.documentid + '</ID>'+
+    '	<DateOfExpiration>2018-08-13</DateOfExpiration>'+
+    '	<CountryOfIssuance>'+ req.query.country +'</CountryOfIssuance>'+
+    '	<CountryOfResidence>'+ req.query.country +'</CountryOfResidence>'+
+    '</PassengerDocument>'+
+    '</PassengerIDInfo>'+
+    '</Passenger>'+
+
+    ' </Passengers>'+
+    '<OrderItems>'+
+    '<ShoppingResponse>'+
+    '	<Owner>AY</Owner>'+
+    '	<ResponseID>SULL-15806151678019274138</ResponseID>'+
+    '	<Offers>'+
+    '		<Offer>'+
+    '			<OfferID Owner="AY">SULL-15806151678019274138-1</OfferID>'+
+    '			<OfferItems>'+
+    '				<OfferItem>'+
+    '					<OfferItemID Owner="AY">SULL-15806151678019274138-1-1</OfferItemID>'+
+    '					<Passengers>'+
+    '						<PassengerReference>PAX1</PassengerReference>'+
+    '					</Passengers>'+
+    '				</OfferItem>'+
+    '			</OfferItems>'+
+    '		</Offer>'+
+    '	</Offers>'+
+    '</ShoppingResponse>'+
+    /*'  <OfferItem>'+
+    '	<OfferItemID Owner="AY">Seat_1</OfferItemID>'+
+    '	<OfferItemType>'+
+    '		<SeatItem>'+
+    '			<SeatReference>SEAT1</SeatReference>'+
+    '			<SeatAssociation>'+
+    '				<SegmentReferences>SEG1</SegmentReferences>'+ //SEGMENT REFF
+    '				<TravelerReference>PAX1</TravelerReference>'+
+    '			</SeatAssociation>'+
+    '		</SeatItem>'+
+    '	</OfferItemType>'+
+    '	  </OfferItem>'+*/
+    '</OrderItems>'+
+    '<Payments>'+
+    '	<Payment>'+
+    '		<Method>'+
+    '			<PaymentCard>'+
+    '				<CardCode>VI</CardCode>   '+           //PAYMENT
+    '				<CardNumber>'+ req.query.cardno +'</CardNumber>'+
+    '				<EffectiveExpireDate>'+
+    '					<Expiration>'+ req.query.cardexp +'</Expiration>'+
+    '				</EffectiveExpireDate>'+
+    '			</PaymentCard>'+
+    '		</Method>'+
+    '		<Amount Code="EUR">'+ req.query.amount +'</Amount>'+ // AMOUNT
+    '	</Payment>'+
+    '</Payments>'+
+    '<DataLists>'+
+    '	<FlightSegmentList>'+
+    '	    <FlightSegment SegmentKey="SEG1">'+
+    '		<Departure>'+
+    '			<AirportCode>HEL</AirportCode>'+
+    '			<Date>'+ req.query.date +'</Date>'+
+    '		</Departure>'+
+    '		<Arrival>'+
+    '			<AirportCode>NCE</AirportCode>'+
+    '		</Arrival>'+
+    '			<MarketingCarrier>'+
+    '			   <AirlineID>AY</AirlineID>'+
+    '			   <FlightNumber>'+ req.query.flightno +'</FlightNumber>'+
+    '			</MarketingCarrier>'+
+    '	    </FlightSegment>'+
+    '	</FlightSegmentList>'+
+    '	<SeatList>'+
+    '         <Seats ListKey="SEAT1">'+
+    '		<Location>'+
+    '			<Column>B</Column>'+
+    '			<Row>'+
+    '				<Number>02</Number>'+
+    '			</Row>'+
+    '		</Location>'+
+    '	    </Seats>'+
+    '	</SeatList>'+
+    '</DataLists>'+
+    '</Query>'+
+    '</OrderCreateRQ>'+
+    '  </soapenv:Body>'+
+    '</soapenv:Envelope>';
+    //res.end(bodyOrder);
+    var postRequest = {
+        host: "localhost",
+        path: "/",
+        port: 15000,
+        method: "POST",
+        headers: {
+            'Cookie': "cookie",
+            'Content-Type': 'text/xml',
+            'Content-Length': Buffer.byteLength(bodyOrder) 
+        }
+    };
+    
+    var buffer = "";
+    var req = http.request( postRequest, function( res )    {
+        //console.log( res.statusCode );
+        var buffer = "";
+        res.on( "data", function( data ) { 
+            buffer = buffer + data; } );
+        res.on( "end", function( data ) {
+            parseString(buffer, function (err, result) {
+                let data = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0];
+                if('Errors' in data){
+                    getResponse.end(buffer)
+                    return;
+                }
+                
+                let orderID = result['SOAP-ENV:Envelope']['Body'][0]['OrderViewRS'][0]['Response'][0]['Order'][0]['OrderID'][0]['_'];
+                getResponse.end(orderID);
+            });
+        });
+    });
+    req.on('error', function(e) {
+           console.log('problem with request: ' + e.message);
+           });
+    
+    req.write(bodyOrder);
+    req.end();
+    
+}
